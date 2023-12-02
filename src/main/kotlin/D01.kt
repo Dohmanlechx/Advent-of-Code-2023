@@ -13,7 +13,7 @@ fun d1a() {
         sum += number
     }
 
-    assert(sum == 54927)
+    require(sum == 54927)
 }
 
 fun d1b() {
@@ -54,7 +54,7 @@ fun d1b() {
         sum += number
     }
 
-    assert(sum == 54581)
+    require(sum == 54581)
 }
 
 fun String.convertFirstLastToNumber() = "${first()}${last()}".toInt()
