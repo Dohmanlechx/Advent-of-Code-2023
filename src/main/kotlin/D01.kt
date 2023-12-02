@@ -1,9 +1,9 @@
 fun main(args: Array<String>) {
-    p1()
-    p2()
+    d1a()
+    d1b()
 }
 
-fun p1() {
+fun d1a() {
     val lines = Reader.input(1)
     var sum = 0
 
@@ -16,7 +16,7 @@ fun p1() {
     assert(sum == 54927)
 }
 
-fun p2() {
+fun d1b() {
     val map = mapOf(
         "one" to "1",
         "two" to "2",
