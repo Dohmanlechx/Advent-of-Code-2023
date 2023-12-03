@@ -1,37 +1,37 @@
 import kotlin.math.absoluteValue
 
 fun main(args: Array<String>) {
-    d3a()
-    d3b()
-}
-
-fun d3a() {
     val lines = Reader.input(3)
-    val symbolCoordinates = mutableListOf<Coordinate>()
+    val symbolCoordinates = mutableListOf<Point>()
     val numbers = lines.numbersAdjacentToSymbols { symbolCoordinates.add(it) }
     val numbersAdjacentToSymbols = numbers.filter { it.isAdjacent(symbolCoordinates) }
+
+    d3a(numbersAdjacentToSymbols)
+    d3b(numbersAdjacentToSymbols)
+}
+
+fun d3a(numbersAdjacentToSymbols: List<Number>) {
     val sum = numbersAdjacentToSymbols.sumOf { it.value }
     require(sum == 498559)
 }
 
-fun d3b() {
-    val lines = Reader.input(3)
-    val symbolCoordinates = mutableListOf<Coordinate>()
-    val numbers = lines.numbersAdjacentToSymbols { symbolCoordinates.add(it) }
-    val numbersAdjacentToSymbols = numbers.filter { it.isAdjacent(symbolCoordinates) }
+fun d3b(numbersAdjacentToSymbols: List<Number>) {
     val numbersHavingSameGear = numbersAdjacentToSymbols.filter { number ->
         numbersAdjacentToSymbols.count { it.gear == number.gear } > 1
     }
-    val setByGear = numbersHavingSameGear.groupBy(Number::gear)
+    val gears = numbersHavingSameGear.groupBy(Number::gear)
+
     var sum = 0
-    setByGear.forEach {
-        val n = it.value.map { n -> n.value }
+
+    for (v in gears.values) {
+        val n = v.map { n -> n.value }
         sum += n.reduce { x, y -> x * y }
     }
+
     require(sum == 72246648)
 }
 
-fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Coordinate) -> Unit): List<Number> {
+fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Point) -> Unit): List<Number> {
     val numbers = mutableListOf<Number>()
 
     forEachIndexed { y, line ->
@@ -43,16 +43,16 @@ fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Coordinate) -> Unit): 
                 numberStr += sign
 
                 if (number.firstDigit == null) {
-                    number = number.copy(firstDigit = Coordinate(x, y))
+                    number = number.copy(firstDigit = Point(x, y))
                 }
             } else {
                 if (sign != '.') {
-                    onSymbolFound.invoke(Coordinate(x, y))
+                    onSymbolFound.invoke(Point(x, y))
                 }
 
                 if (numberStr.isNotBlank()) {
                     numbers.add(
-                        number.copy(value = numberStr.toInt(), lastDigit = Coordinate(x - 1, y))
+                        number.copy(value = numberStr.toInt(), lastDigit = Point(x - 1, y))
                     )
 
                     numberStr = ""
@@ -65,7 +65,7 @@ fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Coordinate) -> Unit): 
             numbers.add(
                 number.copy(
                     value = numberStr.toInt(),
-                    lastDigit = Coordinate(line.length - 1, y)
+                    lastDigit = Point(line.length - 1, y)
                 )
             )
 
@@ -77,18 +77,18 @@ fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Coordinate) -> Unit): 
     return numbers
 }
 
-data class Coordinate(
+data class Point(
     var x: Int = 0,
     var y: Int = 0,
 )
 
 data class Number(
     var value: Int = -1,
-    var firstDigit: Coordinate? = null,
-    var lastDigit: Coordinate? = null,
-    var gear: Coordinate? = null
+    var firstDigit: Point? = null,
+    var lastDigit: Point? = null,
+    var gear: Point? = null
 ) {
-    fun isAdjacent(symbolCoordinate: List<Coordinate>): Boolean {
+    fun isAdjacent(symbolCoordinate: List<Point>): Boolean {
         val f = firstDigit
         val l = lastDigit
 
@@ -96,15 +96,17 @@ data class Number(
             return false
         }
 
-        return symbolCoordinate.any { symbol ->
+        for (symbol in symbolCoordinate) {
             val adjacent = (symbol.x - f.x).absoluteValue <= 1 && (symbol.y - f.y).absoluteValue <= 1 ||
                     (symbol.x - l.x).absoluteValue <= 1 && (symbol.y - l.y).absoluteValue <= 1
 
             if (adjacent) {
                 gear = symbol
+                return true
             }
 
-            adjacent
         }
+
+        return false
     }
 }
