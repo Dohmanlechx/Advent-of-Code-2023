@@ -4,25 +4,23 @@ fun main(args: Array<String>) {
     val lines = Reader.input(3)
     val symbolCoordinates = mutableListOf<Point>()
     val numbers = lines.numbersAdjacentToSymbols { symbolCoordinates.add(it) }
-    val numbersAdjacentToSymbols = numbers.filter { it.isAdjacent(symbolCoordinates) }
+    val adjacentToSymbols = numbers.filter { it.isAdjacent(symbolCoordinates) }
 
-    d3a(numbersAdjacentToSymbols)
-    d3b(numbersAdjacentToSymbols)
+    d3a(adjacentToSymbols)
+    d3b(adjacentToSymbols)
 }
 
-fun d3a(numbersAdjacentToSymbols: List<Number>) {
-    val sum = numbersAdjacentToSymbols.sumOf { it.value }
+fun d3a(adjacentToSymbols: List<Number>) {
+    val sum = adjacentToSymbols.map(Number::value).sum()
     require(sum == 498559)
 }
 
-fun d3b(numbersAdjacentToSymbols: List<Number>) {
-    val numbersHavingSameGear = numbersAdjacentToSymbols.filter { number ->
-        numbersAdjacentToSymbols.count { it.gear == number.gear } > 1
-    }
+fun d3b(adjacentToSymbols: List<Number>) {
+    val numbersHavingSameGear =
+        adjacentToSymbols.filter { number -> adjacentToSymbols.count { it.gear == number.gear } > 1 }
     val gears = numbersHavingSameGear.groupBy(Number::gear)
 
     var sum = 0
-
     for (v in gears.values) {
         val n = v.map { n -> n.value }
         sum += n.reduce { x, y -> x * y }
@@ -38,6 +36,14 @@ fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Point) -> Unit): List<
         var numberStr = ""
         var number = Number()
 
+        fun maybeAddNumber(x: Int) {
+            if (numberStr.isNotBlank()) {
+                numbers.add(number.copy(value = numberStr.toInt(), lastDigit = Point(x - 1, y)))
+                numberStr = ""
+                number = Number()
+            }
+        }
+
         line.forEachIndexed { x, sign ->
             if (sign.isDigit()) {
                 numberStr += sign
@@ -47,40 +53,18 @@ fun List<String>.numbersAdjacentToSymbols(onSymbolFound: (Point) -> Unit): List<
                 }
             } else {
                 if (sign != '.') {
-                    onSymbolFound.invoke(Point(x, y))
+                    onSymbolFound(Point(x, y))
                 }
-
-                if (numberStr.isNotBlank()) {
-                    numbers.add(
-                        number.copy(value = numberStr.toInt(), lastDigit = Point(x - 1, y))
-                    )
-
-                    numberStr = ""
-                    number = Number()
-                }
+                maybeAddNumber(x = x)
             }
         }
-
-        if (numberStr.isNotBlank()) {
-            numbers.add(
-                number.copy(
-                    value = numberStr.toInt(),
-                    lastDigit = Point(line.length - 1, y)
-                )
-            )
-
-            numberStr = ""
-            number = Number()
-        }
+        maybeAddNumber(x = line.length - 1)
     }
 
     return numbers
 }
 
-data class Point(
-    var x: Int = 0,
-    var y: Int = 0,
-)
+data class Point(var x: Int = 0, var y: Int = 0)
 
 data class Number(
     var value: Int = -1,
@@ -89,16 +73,10 @@ data class Number(
     var gear: Point? = null
 ) {
     fun isAdjacent(symbolCoordinate: List<Point>): Boolean {
-        val f = firstDigit
-        val l = lastDigit
-
-        if (f == null || l == null) {
-            return false
-        }
-
         for (symbol in symbolCoordinate) {
-            val adjacent = (symbol.x - f.x).absoluteValue <= 1 && (symbol.y - f.y).absoluteValue <= 1 ||
-                    (symbol.x - l.x).absoluteValue <= 1 && (symbol.y - l.y).absoluteValue <= 1
+            val adjacent =
+                (symbol.x - firstDigit!!.x).absoluteValue <= 1 && (symbol.y - firstDigit!!.y).absoluteValue <= 1 ||
+                        (symbol.x - lastDigit!!.x).absoluteValue <= 1 && (symbol.y - lastDigit!!.y).absoluteValue <= 1
 
             if (adjacent) {
                 gear = symbol
