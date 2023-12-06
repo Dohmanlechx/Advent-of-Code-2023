@@ -11,7 +11,23 @@ object Reader {
             .readText()
             .split(split)
             .map(String::trim)
+            .superTrim()
 
     private fun Int.padded() =
         toString().padStart(2, '0')
+
+    private fun List<String>.superTrim(): List<String> {
+        val trimmedList = mutableListOf<String>()
+        val dirt = "  "
+
+        for (line in this) {
+            var trimmedLine = line
+            while (trimmedLine.contains(dirt)) {
+                trimmedLine = trimmedLine.replace(dirt, " ")
+            }
+            trimmedList.add(trimmedLine)
+        }
+
+        return trimmedList
+    }
 }
